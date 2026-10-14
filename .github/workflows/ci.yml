@@ -1,0 +1,46 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ main, develop, 'feature/**' ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  backend-build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21 LTS
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build & Test Backend with Maven
+        working-directory: hackathon-team-management-system/backend
+        run: mvn clean verify --batch-mode
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: hackathon-team-management-system/frontend/package-lock.json
+
+      - name: Install Frontend Dependencies
+        working-directory: hackathon-team-management-system/frontend
+        run: npm ci
+
+      - name: Build Production Frontend Assets
+        working-directory: hackathon-team-management-system/frontend
+        run: npm run build

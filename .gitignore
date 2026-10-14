@@ -1,0 +1,59 @@
+# ===================================================================
+# Git Ignore Configuration - Hackathon Team Management System
+# ===================================================================
+
+# Environment and Secret Files
+.env
+.env.local
+*.env
+*.pem
+*.key
+*.cer
+
+# Backend (Java / Maven)
+backend/target/
+backend/.mvn/timing.properties
+backend/.mvn/wrapper/maven-wrapper.jar
+*.class
+*.jar
+*.war
+*.ear
+*.log
+
+# Frontend (Node.js / Vite)
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/.pnp
+frontend/.pnp.js
+frontend/coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Selenium & Automation Test Reports & Screenshots
+selenium-tests/target/
+selenium-tests/screenshots/
+selenium-tests/*.png
+test-reports/
+
+# IDE and Editor Directories
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Docker / Local DB Volumes
+mysql_data/
+h2_data/
+
+# OS Temporary Files
+tmp/
+temp/

@@ -1,0 +1,12 @@
+.git
+.github
+docs
+selenium-tests
+ansible
+node_modules
+target
+dist
+*.md
+.env
+.env.*
+*.log
