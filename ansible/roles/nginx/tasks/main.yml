@@ -1,0 +1,20 @@
+---
+# ===================================================================
+# Role: nginx - Reverse Proxy Configuration & Verification
+# ===================================================================
+
+- name: Ensure Nginx Configuration Directory Exists on Host
+  ansible.builtin.file:
+    path: "{{ app_dir }}/nginx"
+    state: directory
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_group }}"
+    mode: '0755'
+
+- name: Deploy Customized Nginx Configuration
+  ansible.builtin.template:
+    src: default.conf.j2
+    dest: "{{ app_dir }}/nginx/default.conf"
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_group }}"
+    mode: '0644'
