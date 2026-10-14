@@ -1,0 +1,87 @@
+services:
+  # ===================================================================
+  # 1. MySQL 8.x Database Tier
+  # ===================================================================
+  db:
+    image: mysql:8.0
+    container_name: hackathon_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-hackathondb}
+      MYSQL_USER: ${MYSQL_USER:-hackathon_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-hackathon_pass}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_pass}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - hackathon_net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ===================================================================
+  # 2. Spring Boot 3.x Backend Tier
+  # ===================================================================
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: hackathon-team-management-backend:${IMAGE_TAG:-1.0.0}
+    container_name: hackathon_backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8080
+      SPRING_PROFILES_ACTIVE: mysql
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/${MYSQL_DATABASE:-hackathondb}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-hackathon_user}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-hackathon_pass}
+      APP_BOOTSTRAP_SEED_DATA: ${APP_BOOTSTRAP_SEED_DATA:-true}
+    networks:
+      - hackathon_net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 25s
+
+  # ===================================================================
+  # 3. React SPA & Nginx Reverse Proxy Tier
+  # ===================================================================
+  frontend:
+    build:
+      context: .
+      dockerfile: deployment/nginx/Dockerfile
+    image: hackathon-team-management-frontend:${IMAGE_TAG:-1.0.0}
+    container_name: hackathon_frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${NGINX_PORT:-8081}:80"
+    networks:
+      - hackathon_net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:80/"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+
+# ===================================================================
+# Persistent Volumes & Network Isolation
+# ===================================================================
+volumes:
+  mysql_data:
+    name: hackathon_mysql_data
+
+networks:
+  hackathon_net:
+    name: hackathon_network
+    driver: bridge

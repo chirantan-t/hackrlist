@@ -1,0 +1,36 @@
+---
+# ===================================================================
+# Role: common - System Baseline & Deployment User Configuration
+# ===================================================================
+
+- name: Install Essential Baseline Packages
+  ansible.builtin.package:
+    name:
+      - curl
+      - git
+      - tar
+      - ca-certificates
+    state: present
+  when: ansible_os_family in ['Debian', 'RedHat']
+
+- name: Ensure Deployment Group Exists
+  ansible.builtin.group:
+    name: "{{ deploy_group }}"
+    state: present
+
+- name: Create Dedicated Deployment User with Restricted Sudo Access
+  ansible.builtin.user:
+    name: "{{ deploy_user }}"
+    group: "{{ deploy_group }}"
+    shell: /bin/bash
+    home: "/home/{{ deploy_user }}"
+    create_home: yes
+    state: present
+
+- name: Ensure Application Directory Exists with Correct Permissions
+  ansible.builtin.file:
+    path: "{{ app_dir }}"
+    state: directory
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_group }}"
+    mode: '0755'

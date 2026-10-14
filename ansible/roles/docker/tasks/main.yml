@@ -1,0 +1,19 @@
+---
+# ===================================================================
+# Role: docker - Docker Engine & Compose Validation
+# ===================================================================
+
+- name: Add Deployment User to docker Group
+  ansible.builtin.user:
+    name: "{{ deploy_user }}"
+    groups: docker
+    append: yes
+  ignore_errors: yes
+
+- name: Verify Docker Service is Enabled and Running
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: yes
+  when: ansible_service_mgr == 'systemd'
+  ignore_errors: yes

@@ -1,0 +1,40 @@
+---
+# ===================================================================
+# Main Ansible Provisioning & Deployment Playbook
+# Idempotent execution for Target Host Configuration & Verification
+# ===================================================================
+
+- name: Provision and Deploy Hackathon Team Management System
+  hosts: hackathon_servers
+  become: yes
+  gather_facts: yes
+
+  pre_tasks:
+    - name: Verify Supported Operating System Family
+      ansible.builtin.assert:
+        that:
+          - ansible_os_family in ['Debian', 'RedHat', 'Rocky', 'Ubuntu'] or ansible_connection == 'local'
+        fail_msg: "Unsupported operating system family: {{ ansible_os_family }}. Target must be Linux or WSL2."
+        success_msg: "Target operating system family verified: {{ ansible_os_family }}."
+
+  roles:
+    - role: common
+    - role: docker
+    - role: app
+    - role: nginx
+
+  post_tasks:
+    - name: Verify Application Health Actuator Endpoint
+      ansible.builtin.uri:
+        url: "{{ health_check_url }}"
+        method: GET
+        status_code: 200
+        return_content: yes
+      register: health_result
+      until: health_result.status == 200
+      retries: "{{ health_check_retries }}"
+      delay: "{{ health_check_delay }}"
+
+    - name: Display Health Verification Result
+      ansible.builtin.debug:
+        msg: "Application is UP and operational! Health response: {{ health_result.json }}"
