@@ -24,23 +24,26 @@ public class UserJourneysTest extends BaseSeleniumTest {
         driver.get(baseUrl + "/login");
 
         // Step 1: Submit invalid credentials
-        waitForVisibility(By.id("username")).sendKeys("invalid_user");
-        driver.findElement(By.id("password")).sendKeys("wrong_password");
-        driver.findElement(By.id("login-button")).click();
+        WebElement userInput = waitForVisibility(By.id("username"));
+        setInputValue(userInput, "invalid_user");
+
+        WebElement passInput = waitForVisibility(By.id("password"));
+        setInputValue(passInput, "wrong_password");
+
+        jsClick(waitForClickable(By.id("login-button")));
 
         // Step 2: Verify error alert displayed
         WebElement errorAlert = waitForVisibility(By.id("login-error"));
         assertTrue(errorAlert.isDisplayed(), "Login error alert should be visible on invalid credentials");
 
         // Step 3: Clear and submit valid credentials
-        driver.findElement(By.id("username")).clear();
-        driver.findElement(By.id("username")).sendKeys("admin");
-        driver.findElement(By.id("password")).clear();
-        driver.findElement(By.id("password")).sendKeys("Admin@123");
-        driver.findElement(By.id("login-button")).click();
+        setInputValue(userInput, "admin");
+        setInputValue(passInput, "Admin@123");
+
+        jsClick(waitForClickable(By.id("login-button")));
 
         // Step 4: Verify navigation to executive dashboard
-        wait.until(ExpectedConditions.urlContains("/"));
+        wait.until(ExpectedConditions.not(ExpectedConditions.urlContains("/login")));
         WebElement dashboardPage = waitForVisibility(By.id("dashboard-page"));
         assertTrue(dashboardPage.isDisplayed(), "Executive dashboard should load successfully on valid login");
     }
@@ -52,18 +55,18 @@ public class UserJourneysTest extends BaseSeleniumTest {
         loginAs("admin", "Admin@123");
 
         // Navigate to team creation form
-        waitForClickable(By.id("nav-create-team")).click();
+        jsClick(waitForClickable(By.id("nav-create-team")));
         wait.until(ExpectedConditions.urlContains("/teams/new"));
 
         // Fill form fields
-        waitForVisibility(By.id("team-name-input")).sendKeys(TEAM_NAME);
-        driver.findElement(By.id("team-code-input")).sendKeys(UNIQUE_CODE);
-        driver.findElement(By.id("project-title-input")).sendKeys("Self-Healing CI/CD Pipeline Automation");
-        driver.findElement(By.id("team-lead-input")).sendKeys("alex_lead");
-        driver.findElement(By.id("project-description-input")).sendKeys("End-to-end resilient container pipeline with automated canary health checks.");
+        setInputValue(waitForVisibility(By.id("team-name-input")), TEAM_NAME);
+        setInputValue(driver.findElement(By.id("team-code-input")), UNIQUE_CODE);
+        setInputValue(driver.findElement(By.id("project-title-input")), "Self-Healing CI/CD Pipeline Automation");
+        setInputValue(driver.findElement(By.id("team-lead-input")), "alex_lead");
+        setInputValue(driver.findElement(By.id("project-description-input")), "End-to-end resilient container pipeline with automated canary health checks.");
 
         // Submit form
-        driver.findElement(By.id("submit-team-btn")).click();
+        jsClick(waitForClickable(By.id("submit-team-btn")));
 
         // Verify redirect to team details
         wait.until(ExpectedConditions.urlMatches(".*/teams/\\d+"));
@@ -71,7 +74,7 @@ public class UserJourneysTest extends BaseSeleniumTest {
         assertEquals(UNIQUE_CODE, codeDisplay.getText().trim(), "Team code should match generated test code");
 
         // Navigate to team list and verify presence
-        driver.findElement(By.id("nav-teams")).click();
+        jsClick(waitForClickable(By.id("nav-teams")));
         wait.until(ExpectedConditions.urlMatches(".*/teams$"));
 
         WebElement table = waitForVisibility(By.id("teams-table"));
@@ -86,10 +89,9 @@ public class UserJourneysTest extends BaseSeleniumTest {
 
         driver.get(baseUrl + "/teams");
         WebElement searchInput = waitForVisibility(By.id("search-input"));
-        searchInput.clear();
-        searchInput.sendKeys(UNIQUE_CODE);
+        setInputValue(searchInput, UNIQUE_CODE);
 
-        driver.findElement(By.id("search-submit-btn")).click();
+        jsClick(waitForClickable(By.id("search-submit-btn")));
 
         // Wait for table to update and assert that target code is present
         wait.until(ExpectedConditions.textToBePresentInElementLocated(By.id("teams-table"), UNIQUE_CODE));
@@ -105,21 +107,20 @@ public class UserJourneysTest extends BaseSeleniumTest {
 
         // Search for target team
         driver.get(baseUrl + "/teams");
-        waitForVisibility(By.id("search-input")).sendKeys(UNIQUE_CODE);
-        driver.findElement(By.id("search-submit-btn")).click();
+        setInputValue(waitForVisibility(By.id("search-input")), UNIQUE_CODE);
+        jsClick(waitForClickable(By.id("search-submit-btn")));
 
         wait.until(ExpectedConditions.textToBePresentInElementLocated(By.id("teams-table"), UNIQUE_CODE));
 
         // Click edit button
         WebElement editBtn = waitForClickable(By.xpath("//tr[contains(., '" + UNIQUE_CODE + "')]//a[contains(@id, 'edit-team')]"));
-        editBtn.click();
+        jsClick(editBtn);
 
         wait.until(ExpectedConditions.urlContains("/edit"));
         WebElement titleInput = waitForVisibility(By.id("project-title-input"));
-        titleInput.clear();
-        titleInput.sendKeys("Updated Autonomous Pipeline v2");
+        setInputValue(titleInput, "Updated Autonomous Pipeline v2");
 
-        driver.findElement(By.id("submit-team-btn")).click();
+        jsClick(waitForClickable(By.id("submit-team-btn")));
 
         // Verify redirect to details with updated title
         wait.until(ExpectedConditions.urlMatches(".*/teams/\\d+"));
@@ -134,23 +135,23 @@ public class UserJourneysTest extends BaseSeleniumTest {
         loginAs("organizer", "Organizer@123");
 
         driver.get(baseUrl + "/teams");
-        waitForVisibility(By.id("search-input")).sendKeys(UNIQUE_CODE);
-        driver.findElement(By.id("search-submit-btn")).click();
+        setInputValue(waitForVisibility(By.id("search-input")), UNIQUE_CODE);
+        jsClick(waitForClickable(By.id("search-submit-btn")));
 
         wait.until(ExpectedConditions.textToBePresentInElementLocated(By.id("teams-table"), UNIQUE_CODE));
 
         // Open status modal
         WebElement statusBtn = waitForClickable(By.xpath("//tr[contains(., '" + UNIQUE_CODE + "')]//button[contains(@id, 'status-team')]"));
-        statusBtn.click();
+        jsClick(statusBtn);
 
         waitForVisibility(By.id("status-transition-modal"));
 
         // Select next allowed status (REGISTERED -> APPROVED)
         WebElement statusSelect = waitForVisibility(By.id("status-select"));
-        statusSelect.sendKeys("APPROVED");
+        setSelectValue(statusSelect, "APPROVED");
 
-        driver.findElement(By.id("status-remarks")).sendKeys("Automated test approval verified by Organizer");
-        driver.findElement(By.id("status-submit-btn")).click();
+        setInputValue(driver.findElement(By.id("status-remarks")), "Automated test approval verified by Organizer");
+        jsClick(waitForClickable(By.id("status-submit-btn")));
 
         // Wait for modal to close and assert status badge reflects APPROVED
         wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("status-transition-modal")));

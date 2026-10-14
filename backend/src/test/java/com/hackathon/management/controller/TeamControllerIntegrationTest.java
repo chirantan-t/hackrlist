@@ -76,7 +76,7 @@ class TeamControllerIntegrationTest {
         mockMvc.perform(get("/api/teams?page=0&size=10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(2)))
-                .andExpect(jsonPath("$.totalElements").value(2));
+                .andExpect(jsonPath("$.page.totalElements").value(2));
     }
 
     @Test

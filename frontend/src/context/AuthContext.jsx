@@ -29,6 +29,7 @@ export const AuthProvider = ({ children }) => {
     const res = await apiClient.post('/api/auth/login', { username, password });
     const userData = res.data;
     setUser(userData);
+    setLoading(false);
     localStorage.setItem('htm_user', JSON.stringify(userData));
     return userData;
   };
@@ -40,6 +41,7 @@ export const AuthProvider = ({ children }) => {
       // Ignore network errors on logout
     } finally {
       setUser(null);
+      setLoading(false);
       localStorage.removeItem('htm_user');
     }
   };

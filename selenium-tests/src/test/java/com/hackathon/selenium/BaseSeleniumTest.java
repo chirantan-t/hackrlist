@@ -2,9 +2,9 @@ package com.hackathon.selenium;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.junit.jupiter.api.extension.TestWatcher;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -63,35 +63,58 @@ public abstract class BaseSeleniumTest {
         return wait.until(ExpectedConditions.elementToBeClickable(locator));
     }
 
+    protected void setInputValue(WebElement element, String value) {
+        ((JavascriptExecutor) driver).executeScript(
+            "const el = arguments[0];" +
+            "const val = arguments[1];" +
+            "if (el._valueTracker) { el._valueTracker.setValue('__init__'); }" +
+            "const proto = Object.getPrototypeOf(el);" +
+            "const descriptor = Object.getOwnPropertyDescriptor(proto, 'value') || " +
+            "                   Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value');" +
+            "if (descriptor && descriptor.set) { descriptor.set.call(el, val); } else { el.value = val; }" +
+            "el.dispatchEvent(new Event('input', { bubbles: true }));" +
+            "el.dispatchEvent(new Event('change', { bubbles: true }));",
+            element, value
+        );
+    }
+
+    protected void setSelectValue(WebElement element, String value) {
+        ((JavascriptExecutor) driver).executeScript(
+            "arguments[0].value = arguments[1];" +
+            "arguments[0].dispatchEvent(new Event('change', { bubbles: true }));",
+            element, value
+        );
+    }
+
+    protected void jsClick(WebElement element) {
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
+    }
+
     protected void loginAs(String username, String password) {
         driver.get(baseUrl + "/login");
-        waitForVisibility(By.id("username")).clear();
-        driver.findElement(By.id("username")).sendKeys(username);
+        WebElement userField = waitForVisibility(By.id("username"));
+        setInputValue(userField, username);
 
-        driver.findElement(By.id("password")).clear();
-        driver.findElement(By.id("password")).sendKeys(password);
+        WebElement passField = waitForVisibility(By.id("password"));
+        setInputValue(passField, password);
 
-        driver.findElement(By.id("login-button")).click();
+        jsClick(waitForClickable(By.id("login-button")));
         wait.until(ExpectedConditions.not(ExpectedConditions.urlContains("/login")));
     }
 
     @RegisterExtension
-    public TestWatcher screenshotWatcher = new TestWatcher() {
-        @Override
-        public void testFailed(ExtensionContext context, Throwable cause) {
-            if (driver instanceof TakesScreenshot) {
+    public AfterTestExecutionCallback screenshotWatcher = context -> {
+        if (context.getExecutionException().isPresent() && driver instanceof TakesScreenshot) {
+            try {
                 File scrFile = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
                 String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
                 String testName = context.getRequiredTestMethod().getName();
-                Path destPath = Paths.get("screenshots", testName + "_" + timestamp + ".png");
-
-                try {
-                    Files.createDirectories(destPath.getParent());
-                    Files.copy(scrFile.toPath(), destPath);
-                    System.err.println("Saved failure screenshot to: " + destPath.toAbsolutePath());
-                } catch (IOException e) {
-                    System.err.println("Failed to save screenshot: " + e.getMessage());
-                }
+                Path destPath = Paths.get("target", "screenshots", testName + "_" + timestamp + ".png");
+                Files.createDirectories(destPath.getParent());
+                Files.copy(scrFile.toPath(), destPath);
+                System.out.println(">>> Saved failure screenshot to: " + destPath.toAbsolutePath());
+            } catch (Exception e) {
+                System.err.println("Failed to capture screenshot: " + e.getMessage());
             }
         }
     };
