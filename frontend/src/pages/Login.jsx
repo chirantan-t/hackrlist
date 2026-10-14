@@ -64,7 +64,7 @@ export const Login = () => {
             <Terminal color="#fff" size={28} />
           </div>
           <h2 style={{ fontSize: '1.75rem', fontWeight: '800', letterSpacing: '-0.02em' }}>
-            Hackathon Console
+            hackr<span style={{ color: 'var(--accent-primary)' }}>base</span>
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.35rem' }}>
             DevOps Team Management System

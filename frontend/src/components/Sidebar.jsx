@@ -19,7 +19,7 @@ export const Sidebar = () => {
           <Terminal size={20} />
         </div>
         <div className="sidebar-brand">
-          <span style={{ color: 'var(--accent-primary)' }}>HTM</span> Devops
+          <span style={{ color: 'var(--accent-primary)' }}>hackr</span>base
         </div>
       </div>
 
