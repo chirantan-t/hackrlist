@@ -77,6 +77,7 @@ public class UserJourneysTest extends BaseSeleniumTest {
         jsClick(waitForClickable(By.id("nav-teams")));
         wait.until(ExpectedConditions.urlMatches(".*/teams$"));
 
+        wait.until(ExpectedConditions.textToBePresentInElementLocated(By.id("teams-table"), UNIQUE_CODE));
         WebElement table = waitForVisibility(By.id("teams-table"));
         assertTrue(table.getText().contains(UNIQUE_CODE), "Team code should be present in teams listing table");
     }
