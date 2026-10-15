@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { dashboardService } from '../services/dashboardService';
 import { StatCard } from '../components/StatCard';
 import { StatusBadge } from '../components/StatusBadge';
 import { TrackBadge } from '../components/TrackBadge';
 import {
-  Users, CheckCircle2, Clock, Send, Award, AlertCircle, FileText, PlusCircle, ArrowUpRight
+  Users, CheckCircle2, Clock, Send, Award, AlertCircle, FileText, PlusCircle, ArrowUpRight,
+  ShieldCheck, Compass, Code2, Sparkles, UserCheck
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, CartesianGrid
 } from 'recharts';
 
 export const Dashboard = () => {
+  const { user, isAdmin, isOrganizer, isLead } = useAuth();
   const [summary, setSummary] = useState(null);
   const [statusData, setStatusData] = useState([]);
   const [trackData, setTrackData] = useState([]);
@@ -51,19 +54,106 @@ export const Dashboard = () => {
     );
   }
 
+  // Role-specific display configurations
+  const roleConfig = isAdmin ? {
+    badge: 'Administrator Control Panel',
+    icon: ShieldCheck,
+    badgeColor: '#ef4444',
+    badgeBg: 'rgba(239, 68, 68, 0.12)',
+    title: 'Executive Administrator Dashboard',
+    subtitle: 'System-wide governance, unrestricted team lifecycle oversight, and platform audit metrics',
+    bannerText: 'Full Privileged Access: Authorized to perform cascade deletion, database configuration, and global state machine overrides.'
+  } : isOrganizer ? {
+    badge: 'Organizer Operations Desk',
+    icon: Compass,
+    badgeColor: '#f59e0b',
+    badgeBg: 'rgba(245, 158, 11, 0.12)',
+    title: 'Hackathon Operations & Review Hub',
+    subtitle: 'Manage team approvals, monitor submission deadlines, and evaluate category track allocations',
+    bannerText: 'Organizer Scope: Authorized to review candidate teams, progress workflow states, and manage track allocations.'
+  } : {
+    badge: 'Participant & Team Lead Portal',
+    icon: Code2,
+    badgeColor: '#38bdf8',
+    badgeBg: 'rgba(56, 189, 248, 0.12)',
+    title: 'Team Lead Project Dashboard',
+    subtitle: 'Track event milestones, oversee your project team roster, and prepare final hackathon deliverables',
+    bannerText: `Welcome, ${user?.fullName || user?.username || 'Team Lead'}! Monitor your team's hackathon progress, manage members, and submit your project.`
+  };
+
+  const RoleIcon = roleConfig.icon;
+
   return (
     <div className="page-wrapper" id="dashboard-page">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+      {/* Role-Specific Header Banner */}
+      <div style={{
+        background: 'var(--card-bg)',
+        border: '1px solid var(--border-subtle)',
+        borderRadius: '12px',
+        padding: '1.25rem 1.5rem',
+        marginBottom: '1.75rem',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '1rem'
+      }}>
         <div>
-          <h2 style={{ fontSize: '1.75rem', fontWeight: '800' }}>Executive Dashboard</h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-            Real-time telemetry and team lifecycle analytics
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.4rem' }}>
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              padding: '0.25rem 0.75rem',
+              borderRadius: '9999px',
+              fontSize: '0.75rem',
+              fontWeight: '700',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+              background: roleConfig.badgeBg,
+              color: roleConfig.badgeColor,
+              border: `1px solid ${roleConfig.badgeColor}33`
+            }}>
+              <RoleIcon size={14} />
+              {roleConfig.badge}
+            </span>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+              Logged in as <strong style={{ color: 'var(--text-primary)' }}>{user?.fullName || user?.username}</strong>
+            </span>
+          </div>
+          <h2 style={{ fontSize: '1.65rem', fontWeight: '800', margin: '0.25rem 0' }}>{roleConfig.title}</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', margin: 0 }}>
+            {roleConfig.subtitle}
           </p>
         </div>
-        <Link to="/teams/new" className="btn btn-primary" id="dashboard-register-btn">
-          <PlusCircle size={18} />
-          <span>Register New Team</span>
-        </Link>
+
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+          <Link to="/teams" className="btn btn-secondary btn-sm" id="dashboard-view-teams-btn">
+            <Users size={16} />
+            <span>Browse All Teams</span>
+          </Link>
+          <Link to="/teams/new" className="btn btn-primary btn-sm" id="dashboard-register-btn">
+            <PlusCircle size={16} />
+            <span>Register Team</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* Role Notice Banner */}
+      <div style={{
+        background: roleConfig.badgeBg,
+        border: `1px solid ${roleConfig.badgeColor}33`,
+        borderRadius: '8px',
+        padding: '0.75rem 1rem',
+        marginBottom: '1.5rem',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.75rem',
+        fontSize: '0.85rem',
+        color: 'var(--text-primary)'
+      }}>
+        <Sparkles size={18} style={{ color: roleConfig.badgeColor, flexShrink: 0 }} />
+        <span>{roleConfig.bannerText}</span>
       </div>
 
       {error && (
