@@ -55,6 +55,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.2.5</version>
                 <configuration>
+                    <argLine>-Xmx512m -Xms128m -Xss512k</argLine>
                     <includes>
                         <include>**/*Test.java</include>
                     </includes>
