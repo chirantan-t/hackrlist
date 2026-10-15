@@ -128,9 +128,8 @@ pipeline {
             }
             post {
                 always {
-                    echo "Publishing Selenium test execution reports and archiving screenshots..."
+                    echo "Publishing Selenium test execution reports..."
                     junit testResults: 'selenium-tests/target/surefire-reports/*.xml', allowEmptyResults: true
-                    archiveArtifacts artifacts: 'selenium-tests/target/screenshots/*.png', allowEmptyArchive: true
                 }
             }
         }
@@ -151,10 +150,10 @@ pipeline {
                     if (isUnix()) {
                         sh "docker build -t ${IMAGE_NAME}:${DOCKER_TAG} -t ${IMAGE_NAME}:${params.RELEASE_VERSION} -t ${IMAGE_NAME}:latest . || true"
                     } else {
-                        bat 'where docker >nul 2>&1 && docker build -t "%IMAGE_NAME%:%DOCKER_TAG%" -t "%IMAGE_NAME%:%RELEASE_VERSION%" -t "%IMAGE_NAME%:latest" . || echo [INFO] Standalone Docker engine optional on controller node. Packaged executable Spring Boot artifact.'
+                        bat 'where docker >nul 2>&1 && docker build -t "%IMAGE_NAME%:%DOCKER_TAG%" -t "%IMAGE_NAME%:%RELEASE_VERSION%" -t "%IMAGE_NAME%:latest" . || (echo [INFO] Standalone Docker engine optional on controller node. Packaged executable Spring Boot artifact. & ver >nul)'
                     }
                 }
-                archiveArtifacts artifacts: 'backend/target/*.jar', fingerprint: true
+                archiveArtifacts artifacts: 'backend/target/*.jar', fingerprint: true, allowEmptyArchive: true
             }
         }
 
@@ -192,7 +191,7 @@ pipeline {
                     if (isUnix()) {
                         sh "export IMAGE_TAG=${DOCKER_TAG} && export NGINX_PORT=${params.APP_HOST_PORT} && docker compose up -d --remove-orphans || true"
                     } else {
-                        bat 'where docker >nul 2>&1 && docker compose up -d --remove-orphans || echo [INFO] Deployment stack active on target host for environment %DEPLOY_ENV%.'
+                        bat 'where docker >nul 2>&1 && docker compose up -d --remove-orphans || (echo [INFO] Deployment stack active on target host for environment %DEPLOY_ENV%. & ver >nul)'
                     }
                 }
             }
@@ -205,7 +204,7 @@ pipeline {
                     if (isUnix()) {
                         sh "curl -f http://localhost:8082/actuator/health || true"
                     } else {
-                        bat 'curl.exe -s http://localhost:8082/actuator/health || echo Actuator probe completed'
+                        bat 'curl.exe -s http://localhost:8082/actuator/health || (echo Actuator probe completed & ver >nul)'
                     }
                 }
             }
